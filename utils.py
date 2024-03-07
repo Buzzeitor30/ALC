@@ -1,5 +1,6 @@
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegressionCV
 
 # from gensim.models import KeyedVectors
 # w2v_embeddings = KeyedVectors.load_word2vec_format("path-to-embeddings")
@@ -27,8 +28,11 @@ def process_text(text, approach, nlp):
         # three characters.
         # 3. Return the processed document as a string.
         #
-
-        return text
+        doc = [token for token in doc if token.is_alpha]
+        doc = [token for token in doc if not token.is_punct]
+        doc = [token for token in doc if not token.is_stop]
+        doc = [token.lemma_.lower() for token in doc if len(token.lemma_) >= 3]
+        return " ".join(doc)
 
     # Approach 3: "spacy_pos"
     if approach == "spacy_pos":
@@ -41,8 +45,14 @@ def process_text(text, approach, nlp):
         # (2) Instead of the lemma, return the plain text of the token (`.text`).
         # Again, make sure you return the processed document as a string.
         #
-
-        return text
+        pos_classes = ["NOUN", "VERB", "ADJ", "ADV", "PROPN"]
+        doc = [token for token in doc if token.is_alpha]
+        doc = [token for token in doc if not token.is_punct]
+        doc = [token for token in doc if not token.is_stop]
+        doc = [token for token in doc if token.pos_ in pos_classes]
+        doc = [token.text.lower() for token in doc]
+        
+        return " ".join(doc)
 
 
 def train_and_apply_classifier(train_df, curr_test_df, approach):
@@ -80,9 +90,19 @@ def train_and_apply_classifier(train_df, curr_test_df, approach):
         #   * Extract both unigrams and bigrams.
         # * Use LogisticRegression instead of MultinomialNB.
         #
-
+        vectorizer = TfidfVectorizer(max_df = 0.9, min_df = 3, ngram_range=(1, 2))
+        # Learn the vocabulary and vectorize the training set:
+        X_train = vectorizer.fit_transform(train_df["processed_text"])
+        y_train = train_df["label"]
+        X_test = vectorizer.transform(curr_test_df["processed_text"])
+        # Create a MultinomialNB object (Naive Bayes classifier for multinomial
+        # models):
+        clf = LogisticRegressionCV(cv=5, n_jobs=4, max_iter=400)
+        # Fit the model to the training data (text + label):
+        clf.fit(X_train, y_train)
+        # Return predictions for the test set:
+        predicted = clf.predict(X_test)
         return predicted
-
     # Approach 3:
     if approach == "w2v":
         # TODO Exercise 4 [Optional]: Averaging word embeddings to represent

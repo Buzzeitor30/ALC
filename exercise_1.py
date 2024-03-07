@@ -41,8 +41,9 @@ df = df[["id", "text", "label"]]
 # `approach` accordingly. The values of the "text" column are strings
 # and the values of the "processed_text" column should also be strings.
 df["processed_text"] = df.apply(
-    lambda x: utils.process_text(x["text"], approach="basic", nlp=nlp), axis=1
+    lambda x: utils.process_text(x["text"], approach="spacy_pos", nlp=nlp), axis=1
 )
+
 
 # -----------------------------------------------------------------
 # 3. Splitting the dataset into training, development and test sets
@@ -67,7 +68,7 @@ test_df = df[df["id"].isin(X_test)]
 # 4. Training, applying, and evaluating a classifier (on the dev set)
 # -----------------------------------------------------------------
 
-predicted = utils.train_and_apply_classifier(train_df, dev_df, approach="clf1")
+predicted = utils.train_and_apply_classifier(train_df, dev_df, approach="clf2")
 
 mcc = matthews_corrcoef(dev_df["label"], predicted)
 p = precision_score(dev_df["label"], predicted, average="macro")
