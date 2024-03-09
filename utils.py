@@ -1,10 +1,9 @@
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import LogisticRegressionCV
-
-# from gensim.models import KeyedVectors
-# w2v_embeddings = KeyedVectors.load_word2vec_format("path-to-embeddings")
-
+from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+import numpy as np
+from gensim.models import KeyedVectors
 
 def process_text(text, approach, nlp):
     # Approach 1: "basic"
@@ -95,9 +94,9 @@ def train_and_apply_classifier(train_df, curr_test_df, approach):
         X_train = vectorizer.fit_transform(train_df["processed_text"])
         y_train = train_df["label"]
         X_test = vectorizer.transform(curr_test_df["processed_text"])
-        # Create a MultinomialNB object (Naive Bayes classifier for multinomial
-        # models):
+
         clf = LogisticRegressionCV(cv=5, n_jobs=4, max_iter=400)
+        clf = LogisticRegression()
         # Fit the model to the training data (text + label):
         clf.fit(X_train, y_train)
         # Return predictions for the test set:
@@ -124,5 +123,17 @@ def train_and_apply_classifier(train_df, curr_test_df, approach):
         # 3. Fit a model (with LogisticRegression, for example) on the training
         #    set, and apply the model to the test set.
         #
+        print("Loading embeddings",end="...")
+        w2v_embeddings = KeyedVectors.load_word2vec_format("cc.en.300.vec")
+        print("done")
+        X_train = np.array([w2v_embeddings.get_mean_vector(doc.split(),ignore_missing=True) for doc in train_df['processed_text']])
+        X_test = np.array([w2v_embeddings.get_mean_vector(doc.split(),ignore_missing=True) for doc in curr_test_df['processed_text']])
 
+        y_train = train_df["label"]
+
+        clf = LogisticRegressionCV()
+        #clf = RandomForestClassifier()
+        clf.fit(X_train, y_train)
+
+        predicted = clf.predict(X_test)
         return predicted

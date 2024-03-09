@@ -10,8 +10,8 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 
 # Load a SpaCy model: https://spacy.io/usage/models
-nlp = spacy.load("es_core_news_sm", disable=["ner", "parser"])  # Spanish
-# nlp = spacy.load("en_core_web_sm", disable=["ner", "parser"]) # English
+#nlp = spacy.load("es_core_news_sm", disable=["ner", "parser"])  # Spanish
+nlp = spacy.load("en_core_web_sm", disable=["ner", "parser"]) # English
 
 import utils
 
@@ -20,8 +20,8 @@ import utils
 # -----------------------------------------------------------------
 
 # Load the json into a pandas dataframe:
-df = pd.read_json("dataset_oppositional/dataset_es_train.json")  # Spanish
-# df = pd.read_json("dataset_oppositional/dataset_en_train.json") # English
+#df = pd.read_json("dataset_oppositional/dataset_es_train.json")  # Spanish
+df = pd.read_json("dataset_oppositional/dataset_en_train.json") # English
 
 # We add a new column where we map the `category` to a numerical value.
 # We will consider `CONSPIRACY` as the positive class:
@@ -68,7 +68,7 @@ test_df = df[df["id"].isin(X_test)]
 # 4. Training, applying, and evaluating a classifier (on the dev set)
 # -----------------------------------------------------------------
 
-predicted = utils.train_and_apply_classifier(train_df, dev_df, approach="clf2")
+predicted = utils.train_and_apply_classifier(train_df, dev_df, approach="w2v")
 
 mcc = matthews_corrcoef(dev_df["label"], predicted)
 p = precision_score(dev_df["label"], predicted, average="macro")
