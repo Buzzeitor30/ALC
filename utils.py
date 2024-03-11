@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 from gensim.models import KeyedVectors
 
+w2v_embeddings_path = "cc.en.300.vec"
+
 def process_text(text, approach, nlp):
     # Approach 1: "basic"
     if approach == "basic":
@@ -96,7 +98,7 @@ def train_and_apply_classifier(train_df, curr_test_df, approach):
         X_test = vectorizer.transform(curr_test_df["processed_text"])
 
         clf = LogisticRegressionCV(cv=5, n_jobs=4, max_iter=400)
-        clf = LogisticRegression()
+        #clf = LogisticRegression()
         # Fit the model to the training data (text + label):
         clf.fit(X_train, y_train)
         # Return predictions for the test set:
@@ -124,7 +126,7 @@ def train_and_apply_classifier(train_df, curr_test_df, approach):
         #    set, and apply the model to the test set.
         #
         print("Loading embeddings",end="...")
-        w2v_embeddings = KeyedVectors.load_word2vec_format("cc.en.300.vec")
+        w2v_embeddings = KeyedVectors.load_word2vec_format(w2v_embeddings_path)
         print("done")
         X_train = np.array([w2v_embeddings.get_mean_vector(doc.split(),ignore_missing=True) for doc in train_df['processed_text']])
         X_test = np.array([w2v_embeddings.get_mean_vector(doc.split(),ignore_missing=True) for doc in curr_test_df['processed_text']])
@@ -132,7 +134,6 @@ def train_and_apply_classifier(train_df, curr_test_df, approach):
         y_train = train_df["label"]
 
         clf = LogisticRegressionCV()
-        #clf = RandomForestClassifier()
         clf.fit(X_train, y_train)
 
         predicted = clf.predict(X_test)
