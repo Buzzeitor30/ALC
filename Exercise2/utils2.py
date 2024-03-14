@@ -1,6 +1,6 @@
 import pandas as pd
-from transformers import pipeline
 from sklearn.model_selection import train_test_split
+from transformers import pipeline
 
 
 def add_category_columns(df, labels):
@@ -76,14 +76,23 @@ def prepare_data_for_labeling(curr_df, labels, label2id, nlp):
     # of three keys: "id", "tokens" and "tags".
     #
     res = []
-    for id, text in curr_df[["id", "text"]].values:
-        doc = nlp(text)
+    for idx, row in curr_df.iterrows():
+        doc = nlp(row['text'])
         sentences = doc.sents
 
         for sentence in sentences:
-            sentence_dict = {"id": str(id) + "_" + str(sentence[0].i),"tokens":[], "tags":[]}
+            sentence_dict = {"id": str(row['id']) + "_" + str(sentence[0].i),"tokens":[], "tags":[]}
             for token in sentence:
                 sentence_dict["tokens"].append(token.text)
+                tag = label2id['O']
+                for span in row['annotations']:
+                    if span['start_spacy_token'] == token.i:
+                        tag = label2id.get('B-' + span['category'], tag)
+                        break
+                    elif span['start_spacy_token'] < token.i and token.i < span['end_spacy_token']:
+                        tag = label2id.get('I-' + span['category'], tag)
+                        break
+                sentence_dict["tags"].append(tag)
             res.append(sentence_dict)
     return res
 
