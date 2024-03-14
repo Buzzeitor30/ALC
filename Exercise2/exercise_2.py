@@ -1,12 +1,12 @@
-import utils
+import utils2
 
 import numpy as np
 import pandas as pd
 
 from datasets import Dataset, load_metric
 from transformers import AutoTokenizer
-from transformers import DataCollatorForTokenClassification
-from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
+#from transformers import DataCollatorForTokenClassification
+#from transformers import AutoModelForTokenClassification, TrainingArguments, Trainer
 
 import spacy
 
@@ -40,9 +40,9 @@ print(label2id["I-FACILITATOR"] == 8)
 
 # -------------------------------------------------------------
 # Add a column for each category:
-# [TODO in utils.py (exercise 1)]
+# [TODO in utils2.py (exercise 1)]
 
-filt_df = utils.add_category_columns(df, labels)
+filt_df = utils2.add_category_columns(df, labels)
 
 print(filt_df.shape == (1379, 7))
 
@@ -52,25 +52,24 @@ print(filt_df.iloc[5].VICTIM == 0)
 print(filt_df.iloc[5].AGENT == 1)
 print(filt_df.iloc[5].FACILITATOR == 0)
 
-
 # -------------------------------------------------------------
 # Create a training, development and test split:
-# [TODO in utils.py (exercise 2)]
+# [TODO in utils2.py (exercise 2)]
 
-train_df, dev_df, test_df = utils.split_data(filt_df, labels)
+train_df, dev_df, test_df = utils2.split_data(filt_df, labels)
 
 print(train_df.shape == (827, 7))
 print(dev_df.shape == (276, 7))
 print(test_df.shape == (276, 7))
 
-
+exit(0)
 # -------------------------------------------------------------
 # Prepare the data for token classification:
-# [TODO in utils.py (exercise 3)]
+# [TODO in utils2.py (exercise 3)]
 
-train_seq_data = utils.prepare_data_for_labeling(train_df, labels, label2id, nlp)
-dev_seq_data = utils.prepare_data_for_labeling(dev_df, labels, label2id, nlp)
-test_seq_data = utils.prepare_data_for_labeling(test_df, labels, label2id, nlp)
+train_seq_data = utils2.prepare_data_for_labeling(train_df, labels, label2id, nlp)
+dev_seq_data = utils2.prepare_data_for_labeling(dev_df, labels, label2id, nlp)
+test_seq_data = utils2.prepare_data_for_labeling(test_df, labels, label2id, nlp)
 
 print(len(train_seq_data) == 7621)
 print(len(dev_seq_data) == 2759)
@@ -131,8 +130,8 @@ hf_test = Dataset.from_list(test_seq_data)
 
 # -------------------------------------------------------------
 # Apply model to the test set:
-# [TODO in utils.py (exercise 5)]
+# [TODO in utils2.py (exercise 5)]
 
 model_name = "distilbert-finetuned-oppo"
-test_results = utils.apply_model(model_name, test_df, nlp)
+test_results = utils2.apply_model(model_name, test_df, nlp)
 print(test_results[0])

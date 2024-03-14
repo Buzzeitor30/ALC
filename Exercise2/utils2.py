@@ -11,8 +11,13 @@ def add_category_columns(df, labels):
     # if there is no span with this label.
     #
     # This function returns a pandas DataFrame.
+    def search_for_annotation(sample, label):
+        return any([x["category"] == label for x in sample["annotations"]])
     
-    return
+    for label in labels:
+        df[label] = df.apply(lambda sample: search_for_annotation(sample, label), axis=1).values
+
+    return df
 
 
 def split_data(df, labels):
@@ -22,8 +27,9 @@ def split_data(df, labels):
     #
     # This function returns three pandas DataFrames (one for each split),
     # with the same columns as the input dataframe.
-
-    return
+    train, dev = train_test_split(df, test_size=0.4, shuffle=True, random_state=42, stratify=df[labels])
+    dev, test = train_test_split(dev, test_size=0.5, random_state=42, shuffle=True, stratify=dev[labels])
+    return train, dev, test
 
 
 def prepare_data_for_labeling(curr_df, labels, label2id, nlp):
