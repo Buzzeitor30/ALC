@@ -27,9 +27,17 @@ def split_data(df, labels):
     #
     # This function returns three pandas DataFrames (one for each split),
     # with the same columns as the input dataframe.
-    train, dev = train_test_split(df, test_size=0.4, shuffle=True, random_state=42, stratify=df[labels])
-    dev, test = train_test_split(dev, test_size=0.5, random_state=42, shuffle=True, stratify=dev[labels])
-    return train, dev, test
+    X_train, X_tmp, y_train, y_tmp = train_test_split(
+        df["id"], df[labels], stratify=df[labels], test_size=0.4, random_state=42
+    )
+    X_dev, X_test, y_dev, y_test = train_test_split(
+        X_tmp, y_tmp, stratify=y_tmp, test_size=0.5, random_state=42
+    )
+    train_df = df[df["id"].isin(X_train)]
+    dev_df = df[df["id"].isin(X_dev)]
+    test_df = df[df["id"].isin(X_test)]
+
+    return train_df, dev_df, test_df
 
 
 def prepare_data_for_labeling(curr_df, labels, label2id, nlp):
@@ -67,8 +75,17 @@ def prepare_data_for_labeling(curr_df, labels, label2id, nlp):
     # This function returns a list of dictionaries, each dictionary consisting
     # of three keys: "id", "tokens" and "tags".
     #
+    res = []
+    for id, text in curr_df[["id", "text"]].values:
+        doc = nlp(text)
+        sentences = doc.sents
 
-    return
+        for sentence in sentences:
+            sentence_dict = {"id": str(id) + "_" + str(sentence[0].i),"tokens":[], "tags":[]}
+            for token in sentence:
+                sentence_dict["tokens"].append(token.text)
+            res.append(sentence_dict)
+    return res
 
 
 def apply_model(model_name, test_df, nlp):

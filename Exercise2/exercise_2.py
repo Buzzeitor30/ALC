@@ -62,7 +62,6 @@ print(train_df.shape == (827, 7))
 print(dev_df.shape == (276, 7))
 print(test_df.shape == (276, 7))
 
-exit(0)
 # -------------------------------------------------------------
 # Prepare the data for token classification:
 # [TODO in utils2.py (exercise 3)]
