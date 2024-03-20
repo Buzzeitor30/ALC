@@ -103,6 +103,11 @@ hf_train = Dataset.from_list(train_seq_data)
 hf_dev = Dataset.from_list(dev_seq_data)
 hf_test = Dataset.from_list(test_seq_data)
 
+dataset_info = hf_test.info
+
+print(len(hf_train))
+exit()
+
 # -------------------------------------------------------------
 # Fine-tune DistilBERT for token classification:
 # [TODO Exercise 4]
@@ -194,6 +199,7 @@ def tokenize_and_align_labels(examples):
 
 hf_train = hf_train.map(tokenize_and_align_labels, batched=True)
 hf_dev = hf_dev.map(tokenize_and_align_labels, batched=True)
+hf_test = hf_test.map(tokenize_and_align_labels, batched=True)
 
 
 args = TrainingArguments(
@@ -217,15 +223,43 @@ trainer = Trainer(
     compute_metrics=compute_metrics,
 )
 
-
-trainer.train()
-results = trainer.evaluate()
-print(tabulate(results, headers="keys", tablefmt="latex"))
-trainer.save_model()
+#trainer.train()
+#results = trainer.evaluate()
+#print(tabulate(results, headers="keys", tablefmt="latex"))
+#trainer.save_model()
 # -------------------------------------------------------------
 # Apply model to the test set:
 # [TODO in utils2.py (exercise 5)]
 
-model_name = "distilbert-finetuned-oppo"
-test_results = utils2.apply_model(model_name, test_df, nlp, id2label)
-##print(test_results[0])
+'''model_name = "distilbert-finetuned-oppo"
+model_checkpoint = "./distilbert-finetuned-oppo"
+model = AutoModelForTokenClassification.from_pretrained(
+    model_checkpoint,
+    num_labels=len(id2label),
+    id2label=id2label,
+    label2id=label2id,
+)'''
+
+args = TrainingArguments(
+    model_name,
+    evaluation_strategy="epoch",
+    learning_rate=2e-5,
+    per_device_train_batch_size=batch_size,
+    per_device_eval_batch_size=batch_size,
+    num_train_epochs=3,
+    weight_decay=1e-2,
+    push_to_hub=False,
+)
+
+evaluator = Trainer(
+    model,
+    args,
+    train_dataset=hf_train,
+    eval_dataset=hf_test,
+    data_collator=data_collator,
+    tokenizer=tokenizer,
+    compute_metrics=compute_metrics,
+)
+#test_results = utils2.apply_model(model_name, test_df, nlp)
+#print(test_results[0])
+print(evaluator.evaluate())

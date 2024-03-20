@@ -136,7 +136,7 @@ def apply_model(model_name, test_df, nlp):
         model=model_name, aggregation_strategy="simple", task="ner"
     )
 
-    for _, row in list(test_df.iterrows())[:10]:
+    for _, row in list(test_df.iterrows()):
         id = row["id"]
         res_dict = {"id": id, "annotations": []}
 
