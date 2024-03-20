@@ -13,9 +13,11 @@ def add_category_columns(df, labels):
     # This function returns a pandas DataFrame.
     def search_for_annotation(sample, label):
         return any([x["category"] == label for x in sample["annotations"]])
-    
+
     for label in labels:
-        df[label] = df.apply(lambda sample: search_for_annotation(sample, label), axis=1).values
+        df[label] = df.apply(
+            lambda sample: search_for_annotation(sample, label), axis=1
+        ).values
 
     return df
 
@@ -77,20 +79,27 @@ def prepare_data_for_labeling(curr_df, labels, label2id, nlp):
     #
     res = []
     for idx, row in curr_df.iterrows():
-        doc = nlp(row['text'])
+        doc = nlp(row["text"])
         sentences = doc.sents
 
         for sentence in sentences:
-            sentence_dict = {"id": str(row['id']) + "_" + str(sentence[0].i),"tokens":[], "tags":[]}
+            sentence_dict = {
+                "id": str(row["id"]) + "_" + str(sentence[0].i),
+                "tokens": [],
+                "tags": [],
+            }
             for token in sentence:
                 sentence_dict["tokens"].append(token.text)
-                tag = label2id['O']
-                for span in row['annotations']:
-                    if span['start_spacy_token'] == token.i:
-                        tag = label2id.get('B-' + span['category'], tag)
+                tag = label2id["O"]
+                for span in row["annotations"]:
+                    if span["start_spacy_token"] == token.i:
+                        tag = label2id.get("B-" + span["category"], tag)
                         break
-                    elif span['start_spacy_token'] < token.i and token.i < span['end_spacy_token']:
-                        tag = label2id.get('I-' + span['category'], tag)
+                    elif (
+                        span["start_spacy_token"] < token.i
+                        and token.i < span["end_spacy_token"]
+                    ):
+                        tag = label2id.get("I-" + span["category"], tag)
                         break
                 sentence_dict["tags"].append(tag)
             res.append(sentence_dict)
@@ -116,5 +125,34 @@ def apply_model(model_name, test_df, nlp):
     #
     # This function returns the test set formatted as a list of dictionries
     # as required by the shared task.
-    
-    return
+    results = []
+
+    # 1. Nos llega una muestra
+    # 2. Sacamos las sentence
+    # 3. Pasamos todas las setence por el pipeline
+    # 4. Lista de lista de diccionarios
+    # 5. Preprocesamos
+    ner_pipeline = pipeline(
+        model=model_name, aggregation_strategy="simple", task="ner"
+    )
+
+    for _, row in list(test_df.iterrows())[:10]:
+        id = row["id"]
+        res_dict = {"id": id, "annotations": []}
+
+        doc = nlp(row["text"])
+        sentences = [sent.text for sent in doc.sents]
+
+        results_pipeline = ner_pipeline(sentences)
+        for result in results_pipeline:
+            for sent_tag in result:
+                if sent_tag["entity_group"] != 'O':
+                    aux_dict = {
+                        "category": sent_tag["entity_group"],
+                        "start_char": sent_tag["start"],
+                        "end_char": sent_tag["end"],
+                    }
+                    res_dict["annotations"].append(aux_dict)
+        results.append(res_dict)
+
+    return results
