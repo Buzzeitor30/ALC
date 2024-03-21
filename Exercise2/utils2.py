@@ -125,13 +125,9 @@ def apply_model(model_name, test_df, nlp):
     #
     # This function returns the test set formatted as a list of dictionries
     # as required by the shared task.
+    #Variable to store results
     results = []
-
-    # 1. Nos llega una muestra
-    # 2. Sacamos las sentence
-    # 3. Pasamos todas las setence por el pipeline
-    # 4. Lista de lista de diccionarios
-    # 5. Preprocesamos
+    #Ner pipeline
     ner_pipeline = pipeline(
         model=model_name, aggregation_strategy="simple", task="ner"
     )
@@ -141,18 +137,25 @@ def apply_model(model_name, test_df, nlp):
         res_dict = {"id": id, "annotations": []}
 
         doc = nlp(row["text"])
+        #Get string for all sentences
         sentences = [sent.text for sent in doc.sents]
-
+        #Pass it over to our pipeline
         results_pipeline = ner_pipeline(sentences)
+        #For each result
         for result in results_pipeline:
+            #Get the tag
             for sent_tag in result:
+                #Ignore "O" tags
                 if sent_tag["entity_group"] != 'O':
+                    #Aux dict to store data
                     aux_dict = {
                         "category": sent_tag["entity_group"],
                         "start_char": sent_tag["start"],
                         "end_char": sent_tag["end"],
                     }
+                    #Add it to temporary dict
                     res_dict["annotations"].append(aux_dict)
+        #return data
         results.append(res_dict)
 
     return results
