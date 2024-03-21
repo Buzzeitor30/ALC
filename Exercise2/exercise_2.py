@@ -1,4 +1,4 @@
-import utils2
+import utils
 
 import numpy as np
 import pandas as pd
@@ -42,9 +42,9 @@ label2id = {v: k for k, v in id2label.items()}
 
 # -------------------------------------------------------------
 # Add a column for each category:
-# [TODO in utils2.py (exercise 1)]
+# [TODO in utils.py (exercise 1)]
 
-filt_df = utils2.add_category_columns(df, labels)
+filt_df = utils.add_category_columns(df, labels)
 
 #print(filt_df.shape == (1379, 7))
 
@@ -56,9 +56,9 @@ filt_df = utils2.add_category_columns(df, labels)
 
 # -------------------------------------------------------------
 # Create a training, development and test split:
-# [TODO in utils2.py (exercise 2)]
+# [TODO in utils.py (exercise 2)]
 
-train_df, dev_df, test_df = utils2.split_data(filt_df, labels)
+train_df, dev_df, test_df = utils.split_data(filt_df, labels)
 
 #print(train_df.shape == (827, 7))
 #print(dev_df.shape == (276, 7))
@@ -66,11 +66,11 @@ train_df, dev_df, test_df = utils2.split_data(filt_df, labels)
 
 # -------------------------------------------------------------
 # Prepare the data for token classification:
-# [TODO in utils2.py (exercise 3)]
+# [TODO in utils.py (exercise 3)]
 
-train_seq_data = utils2.prepare_data_for_labeling(train_df, labels, label2id, nlp)
-dev_seq_data = utils2.prepare_data_for_labeling(dev_df, labels, label2id, nlp)
-test_seq_data = utils2.prepare_data_for_labeling(test_df, labels, label2id, nlp)
+train_seq_data = utils.prepare_data_for_labeling(train_df, labels, label2id, nlp)
+dev_seq_data = utils.prepare_data_for_labeling(dev_df, labels, label2id, nlp)
+test_seq_data = utils.prepare_data_for_labeling(test_df, labels, label2id, nlp)
 
 #print(len(train_seq_data) == 7621)
 #print(len(dev_seq_data) == 2759)
@@ -104,9 +104,6 @@ hf_dev = Dataset.from_list(dev_seq_data)
 hf_test = Dataset.from_list(test_seq_data)
 
 dataset_info = hf_test.info
-
-print(len(hf_train))
-exit()
 
 # -------------------------------------------------------------
 # Fine-tune DistilBERT for token classification:
@@ -229,7 +226,7 @@ trainer = Trainer(
 #trainer.save_model()
 # -------------------------------------------------------------
 # Apply model to the test set:
-# [TODO in utils2.py (exercise 5)]
+# [TODO in utils.py (exercise 5)]
 
 '''model_name = "distilbert-finetuned-oppo"
 model_checkpoint = "./distilbert-finetuned-oppo"
@@ -260,6 +257,6 @@ evaluator = Trainer(
     tokenizer=tokenizer,
     compute_metrics=compute_metrics,
 )
-#test_results = utils2.apply_model(model_name, test_df, nlp)
+#test_results = utils.apply_model(model_name, test_df, nlp)
 #print(test_results[0])
 print(evaluator.evaluate())
